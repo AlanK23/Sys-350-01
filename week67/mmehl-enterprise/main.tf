@@ -35,7 +35,7 @@ variable "services" {
   type = map(object({
     image   = string
     network = string
-    ports   = optional(list(object({
+    ports = optional(list(object({
       internal = number
       external = number
     })), [])
@@ -268,9 +268,9 @@ resource "libvirt_domain" "windows" {
   cpu = {
     mode = "host-passthrough"
   }
-  type        = "kvm"
-  autostart   = true
-  running     = true
+  type      = "kvm"
+  autostart = true
+  running   = true
   features = {
     acpi = true
     apic = {}

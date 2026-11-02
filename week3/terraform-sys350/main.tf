@@ -1,66 +1,66 @@
 terraform {
-	required_providers {
-		docker = {
-			source = "kreuzwerker/docker"
-			version = "~> 3.0"
-		}
-		libvirt = {
-			source = "dmacvicar/libvirt"
-			version = "~> 0.9"
-		}
-	}
+  required_providers {
+    docker = {
+      source  = "kreuzwerker/docker"
+      version = "~> 3.0"
+    }
+    libvirt = {
+      source  = "dmacvicar/libvirt"
+      version = "~> 0.9"
+    }
+  }
 }
 
 provider "docker" {}
 
 variable "student_name" {
-	type		= string
-	description	= "Your student identifier (e.g., jsmith, mgarcia)"
+  type        = string
+  description = "Your student identifier (e.g., jsmith, mgarcia)"
 
-	validation {
-		condition	= can(regex("^[a-z]{2,10}$", var.student_name))
-		error_message	= "Student name must be 2-10 lowercase letters."
-	}
+  validation {
+    condition     = can(regex("^[a-z]{2,10}$", var.student_name))
+    error_message = "Student name must be 2-10 lowercase letters."
+  }
 }
 
 variable "host_port" {
-	description	= "Port on the host (coordinate wih partner)"
-	type		= number
-	default		= 8080
+  description = "Port on the host (coordinate wih partner)"
+  type        = number
+  default     = 8080
 }
 
 resource "docker_image" "nginx" {
-	name	= "nginx:latest"
+  name = "nginx:latest"
 }
 
 resource "docker_network" "lan" {
-	name	= "${var.student_name}-sys350-lan"
+  name = "${var.student_name}-sys350-lan"
 }
 
 resource "docker_volume" "web_data" {
-	name	= "${var.student_name}-nginx-html"
+  name = "${var.student_name}-nginx-html"
 }
 
 resource "docker_container" "web_server" {
-	name	= "${var.student_name}-web-server"
-	image	= docker_image.nginx.image_id
+  name  = "${var.student_name}-web-server"
+  image = docker_image.nginx.image_id
 
-	ports {
-		internal = 80
-		external = var.host_port
-	}
+  ports {
+    internal = 80
+    external = var.host_port
+  }
 
-	networks_advanced {
-		name = docker_network.lan.name
-	}
+  networks_advanced {
+    name = docker_network.lan.name
+  }
 
-	volumes {
-		volume_name	= docker_volume.web_data.name
-		container_path	= "/usr/share/nginx/html"
-		read_only	= false
-	}
+  volumes {
+    volume_name    = docker_volume.web_data.name
+    container_path = "/usr/share/nginx/html"
+    read_only      = false
+  }
 }
 
 output "container_ip" {
-	value = docker_container.web_server.network_data[0].ip_address
+  value = docker_container.web_server.network_data[0].ip_address
 }

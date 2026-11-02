@@ -35,7 +35,7 @@ variable "services" {
   type = map(object({
     image   = string
     network = string
-    ports   = optional(list(object({
+    ports = optional(list(object({
       internal = number
       external = number
     })), [])
