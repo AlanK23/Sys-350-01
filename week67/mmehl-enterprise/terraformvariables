@@ -1,0 +1,101 @@
+# SYS-350 Enterprise Build (mmehl)
+
+Terraform project deploying Docker services and KVM VMs on a shared hypervisor.
+
+## Files
+- main.tf
+- cloud-init-server.yaml
+- .gitignore
+- terraform.tfvars (not committed)
+
+## Usage
+terraform init
+terraform plan
+terraform apply
+
+## Redacted tfvars example
+```hcl
+student_name          = "mmehl"
+networks              = ["devops", "internal", "web"]
+corp_octet            = 51
+cloud_image_path      = "/opt/images/ubuntu-26.04-server-cloudimg-amd64.img"
+win_server_image_path = "/opt/images/win2k25.qcow2"
+win11_image_path      = "/opt/images/win11.qcow2"
+
+services = {
+  gitea = {
+    image   = "gitea/gitea:latest"
+    network = "devops"
+    ports   = [{ internal = 3000, external = 4000 }]
+  }
+  drawio = {
+    image   = "jgraph/drawio:latest"
+    network = "devops"
+    ports   = [{ internal = 8080, external = 4001 }]
+  }
+  vaultwarden = {
+    image   = "vaultwarden/server:latest"
+    network = "internal"
+    ports   = [{ internal = 80, external = 4002 }]
+    env = {
+      ADMIN_TOKEN                    = "REDACTED"
+      I_REALLY_WANT_VOLATILE_STORAGE = "true"
+    }
+  }
+  stirlingpdf = {
+    image   = "frooodle/s-pdf:latest"
+    network = "internal"
+    ports   = [{ internal = 8080, external = 4003 }]
+  }
+  privatebin = {
+    image   = "privatebin/nginx-fpm-alpine:latest"
+    network = "internal"
+    ports   = [{ internal = 8080, external = 4004 }]
+  }
+  mysql = {
+    image   = "mysql:8.0"
+    network = "web"
+    ports   = [{ internal = 3306, external = 4006 }]
+    env = {
+      MYSQL_ROOT_PASSWORD = "REDACTED"
+      MYSQL_DATABASE      = "wordpress"
+      MYSQL_USER          = "wpuser"
+      MYSQL_PASSWORD      = "REDACTED"
+    }
+  }
+  wordpress = {
+    image   = "wordpress:latest"
+    network = "web"
+    ports   = [{ internal = 80, external = 4007 }]
+    env = {
+      WORDPRESS_DB_HOST     = "mmehl-mysql"
+      WORDPRESS_DB_USER     = "wpuser"
+      WORDPRESS_DB_PASSWORD = "REDACTED"
+      WORDPRESS_DB_NAME     = "wordpress"
+    }
+  }
+  uptimekuma = {
+    image   = "louislam/uptime-kuma:1"
+    network = "devops"
+    ports   = [{ internal = 3001, external = 4008 }]
+  }
+  ittools = {
+    image   = "corentinth/it-tools:latest"
+    network = "internal"
+    ports   = [{ internal = 80, external = 4009 }]
+  }
+}
+
+vms = {
+  "mmehl-win-srv" = {
+    os = "win-server"
+  }
+  "mmehl-win11" = {
+    os = "win11"
+  }
+  "mmehl-ubuntu-srv" = {
+    os        = "ubuntu-server"
+    memory_mb = 2048
+    vcpu      = 1
+  }
+}
